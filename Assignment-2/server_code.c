@@ -25,75 +25,88 @@ void get_processes(Process process_stored[2]) {
   // lets give some memory to the process_stored , memory for storing the top 2
   // processes .
 
-  memset(process_stored, 0, 2 * sizeof(process_stored));
+  memset(process_stored, 0, 2 * sizeof(&process_stored));
 
   process_directory = opendir(
       "/proc"); // we have now stored the information in the process directory .
 
   // printf("This is the process directory: %p\n", (void *)process_directory);
 
-  if (!process_directory){
-    perror("Failed to opendir !") ; 
-    return; 
+  if (!process_directory) {
+    perror("Failed to opendir !");
+    return;
   }
 
+  // now we can iterate over each entry in the opendir and update to get the 2
+  // most cpu-consuming processes .
 
-  // now we can iterate over each entry in the opendir and update to get the 2 most cpu-consuming processes .  
+  while (1) {
 
-  while (1){
+    proc_entry = readdir(process_directory);
 
-    proc_entry = readdir(process_directory) ; 
-    
-    if (proc_entry == NULL){
-      break; // this will mark the end of the process directory . 
+    if (proc_entry == NULL) {
+      break; // this will mark the end of the process directory .
     }
-    printf("This is the process name: %s\n" , proc_entry->d_name) ;
-    
-    if (isdigit(*proc_entry->d_name)){
-      pid = atoi(proc_entry->d_name) ; 
+    // printf("This is the process name: %s\n" , proc_entry->d_name) ;
 
-      // now we got the pid , we need to construct the path of the form /proc/[pid]/stat ; 
-      snprintf(starting_path, sizeof(starting_path), "/proc/%d/stat"   , pid) ; // stored the path in the variable starting_path defined above . 
+    if (isdigit(*proc_entry->d_name)) {
+      pid = atoi(proc_entry->d_name);
 
-      int fd1 = open(starting_path , O_RDONLY) ; // read only mode ; 
+      // now we got the pid , we need to construct the path of the form
+      // /proc/[pid]/stat ;
+      snprintf(
+          starting_path, sizeof(starting_path), "/proc/%d/stat",
+          pid); // stored the path in the variable starting_path defined above .
 
-      if (fd1 < 0){
-        continue; 
+      int fd1 = open(starting_path, O_RDONLY); // read only mode ;
+
+      if (fd1 < 0) {
+        continue;
       }
 
-      read(fd1 , buffer , sizeof(buffer)) ; // stored the result in the buffer which will be used to get the information . 
+      read(fd1, buffer,
+           sizeof(buffer)); // stored the result in the buffer which will be
+                            // used to get the information .
 
-      close(fd1) ; 
+      close(fd1);
 
-      // printf("Buffer content: \n %s\n" , buffer) ; 
+      // printf("Buffer content: \n %s\n", buffer);
 
-      sscanf(buffer, "%d %s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %*u %*u %*u %lu %lu", &current_proc.pid , current_proc.name_proc , &current_proc.utime , &current_proc.stime) ;  // thus all the info is now stored inside the current_proc variable , now we can use comparision and other operators to do the things easily . 
+      sscanf(buffer,
+             "%d %s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u "
+             "%lu %lu",
+             &current_proc.pid, current_proc.name_proc, &current_proc.utime,
+             &current_proc
+                  .stime); // thus all the info is now stored inside the
+                           // current_proc variable , now we can use comparision
+                           // and other operators to do the things easily .
 
-      unsigned long total_time = current_proc.utime + current_proc.stime ; 
+      unsigned long total_time = current_proc.utime + current_proc.stime;
 
-      if (total_time > process_stored[0].utime + process_stored[0].stime){
-        process_stored[1] = process_stored[0] ; //shifting the most to second_most ; 
-        process_stored[0] = current_proc ; // changing the topmost process ; This way data of the second most is lost  . 
+      if (total_time > process_stored[0].utime + process_stored[0].stime) {
+        process_stored[1] =
+            process_stored[0]; // shifting the most to second_most ;
+        process_stored[0] = 
+            current_proc; // changing the topmost process ; This way data of the
+                          // second most is lost  .
 
+      } else if (total_time >
+                 process_stored[1].utime + process_stored[1].stime) {
+        process_stored[1] =
+            current_proc; // similiarly changing the secondmost top process .
       }
-      else if(total_time > process_stored[1].utime + process_stored[1].stime){
-        process_stored[1] = current_proc ; // similiarly changing the secondmost top process . 
-      }
-       
     }
-    else{
+    // else{
 
-      printf("Not a digit pid!\n") ; 
-    }
-    
-    printf("done!\n") ; 
+    //   printf("Not a digit pid!\n") ;
+    // }
+
+    // printf("done!\n") ;
   }
 
-  printf("This is working!\n") ; 
+  printf("This is working!\n");
 
-
-  closedir(process_directory) ; 
-  
+  closedir(process_directory);
 }
 
 void *custom_handler(void *socket_no) {
@@ -103,8 +116,7 @@ void *custom_handler(void *socket_no) {
 
   char buffer[1024] = {0};
 
-  Process process_stored[2] ; 
-
+  Process process_stored[2];
 
   // char *m1 = "Hello from server";
 
@@ -114,26 +126,30 @@ void *custom_handler(void *socket_no) {
     printf("Recieved request from client: %s\n", buffer);
   }
 
-  // now lets get the top two cpu-consuming processes for the client ; 
+  // now lets get the top two cpu-consuming processes for the client ;
 
-  get_processes(process_stored) ; 
+  get_processes(process_stored);
 
-  snprintf(buffer, sizeof(buffer), "Top 2 CPU consuming processes are as follows :\n 1. PID: %d , Name: %s , User Time: %lu , Kernel Time: %lu\n" "2. PID: %d , Name: %s , User Time: %lu , Kernel Time: %lu\n", 
-  process_stored[0].pid , process_stored[0].name_proc , process_stored[0].utime , process_stored[0].stime , 
-  process_stored[1].pid , process_stored[1].name_proc , process_stored[1].utime , process_stored[1].stime) ; 
+  snprintf(buffer, sizeof(buffer),
+           "Top 2 CPU consuming processes are as follows :\n 1. PID: %d , "
+           "Name: %s , User Time: %lu , Kernel Time: %lu\n"
+           "2. PID: %d , Name: %s , User Time: %lu , Kernel Time: %lu\n",
+           process_stored[0].pid, process_stored[0].name_proc,
+           process_stored[0].utime, process_stored[0].stime,
+           process_stored[1].pid, process_stored[1].name_proc,
+           process_stored[1].utime, process_stored[1].stime);
 
-  // now the whole result which needs to be send is stored in the buffer . Now , we can simply use the send command to send the data to the client . 
+  // now the whole result which needs to be send is stored in the buffer . Now ,
+  // we can simply use the send command to send the data to the client .
 
-  send(new_socket_no, buffer, strlen(buffer), 0) ; 
+  send(new_socket_no, buffer, strlen(buffer), 0);
 
-  
   // close(new_socket_no);
 
   printf("Client terminated . \n");
 
   return 0;
 }
-
 
 int main() {
 
@@ -171,7 +187,7 @@ int main() {
 
   // now we need to listen the connections
   // taking the backlog as 10 ;
-  int val_check = listen(server_fd, 10);
+  int val_check = listen(server_fd, 1000);
 
   if (val_check < 0) {
     perror("Listen Failed");
