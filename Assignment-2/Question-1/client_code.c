@@ -3,6 +3,7 @@
 // where “n” is passed as a program argument.
 
 #include "client_code.h"
+#include <complex.h>
 
 #define PORT 8080
 
@@ -29,14 +30,14 @@ void *custom_handler(void *arg) {
 
   // lets check for the servers address now ,
   // we are considering that the server is localhost for now .
-  if (inet_pton(AF_INET, "172.28.140.121", &server_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, "10.0.2.15", &server_addr.sin_addr) <= 0) {
     printf("Invalid address / address does not work !\n");
 
     return NULL;
   }
 
   // now we can connect to the server
-
+  
   int connect_val =
       connect(socket_no, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
