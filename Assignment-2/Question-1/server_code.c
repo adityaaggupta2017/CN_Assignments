@@ -1,11 +1,7 @@
 #include "server_code.h"
-#include <dirent.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
 
 #define PORT 8080
-
+#define SIZE 1024
 // we will be following the steps mentioned in the TCP (as mentioned in the tut
 // sheet)
 
@@ -54,6 +50,7 @@ void get_processes(Process process_stored[2]) {
 
       // now we got the pid , we need to construct the path of the form
       // /proc/[pid]/stat ;
+
       snprintf(
           starting_path, sizeof(starting_path), "/proc/%d/stat",
           pid); // stored the path in the variable starting_path defined above .
@@ -86,7 +83,7 @@ void get_processes(Process process_stored[2]) {
       if (total_time > process_stored[0].utime + process_stored[0].stime) {
         process_stored[1] =
             process_stored[0]; // shifting the most to second_most ;
-        process_stored[0] = 
+        process_stored[0] =
             current_proc; // changing the topmost process ; This way data of the
                           // second most is lost  .
 

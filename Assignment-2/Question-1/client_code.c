@@ -3,7 +3,6 @@
 // where “n” is passed as a program argument.
 
 #include "client_code.h"
-#include <complex.h>
 
 #define PORT 8080
 
@@ -37,7 +36,7 @@ void *custom_handler(void *arg) {
   }
 
   // now we can connect to the server
-  
+
   int connect_val =
       connect(socket_no, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
@@ -74,8 +73,6 @@ int main(int argc, char const *argv[]) {
 
   pthread_t all_threads[num_of_clients];
 
-  
-
   for (int i = 0; i < num_of_clients; i++) {
     int resp = pthread_create(&all_threads[i], NULL, custom_handler, NULL);
     if (resp != 0) {
@@ -88,5 +85,4 @@ int main(int argc, char const *argv[]) {
   for (int i = 0; i < num_of_clients; i++) {
     pthread_join(all_threads[i], NULL);
   }
-
 }
