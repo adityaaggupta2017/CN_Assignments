@@ -29,7 +29,7 @@ void *custom_handler(void *arg) {
 
   // lets check for the servers address now ,
   // we are considering that the server is localhost for now .
-  if (inet_pton(AF_INET, "192.168.162.134", &server_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, "192.168.160.48", &server_addr.sin_addr) <= 0) {
     printf("Invalid address / address does not work !\n");
 
     return NULL;
