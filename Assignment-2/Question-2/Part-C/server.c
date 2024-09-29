@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #define PORT 8080
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 30
 #define BUFFER_SIZE 1024
 
 void get_processes(Process process_stored[2]) {
