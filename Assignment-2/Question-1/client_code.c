@@ -3,8 +3,16 @@
 // where “n” is passed as a program argument.
 
 #include "client_code.h"
+#include <pthread.h>
+#include <unistd.h>
 
 #define PORT 8080
+
+
+int completed_threads = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
+
 
 void *custom_handler(void *arg) {
   int socket_no = 0;
@@ -29,7 +37,7 @@ void *custom_handler(void *arg) {
 
   // lets check for the servers address now ,
   // we are considering that the server is localhost for now .
-  if (inet_pton(AF_INET, "192.168.160.48", &server_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0) {
     printf("Invalid address / address does not work !\n");
 
     return NULL;
@@ -54,6 +62,11 @@ void *custom_handler(void *arg) {
   printf("Server reply: %s\n", buffer);
 
   close(socket_no);
+
+  pthread_mutex_lock(&mutex);
+  completed_threads++;
+  pthread_cond_signal(&cond_var);
+  pthread_mutex_unlock(&mutex);
 
   return NULL;
 }
@@ -80,9 +93,15 @@ int main(int argc, char const *argv[]) {
 
       return -1;
     }
+    pthread_detach(all_threads[i]) ; 
+
   }
 
-  for (int i = 0; i < num_of_clients; i++) {
-    pthread_join(all_threads[i], NULL);
+  pthread_mutex_lock(&mutex);
+  while (completed_threads < num_of_clients) {
+      pthread_cond_wait(&cond_var, &mutex);
   }
+  pthread_mutex_unlock(&mutex);
+
+  return 0;
 }
