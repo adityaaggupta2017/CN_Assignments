@@ -1,0 +1,6 @@
+sudo nano /etc/udev/rules.d/10-network.rules
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="08:00:27:67:df:cb", NAME="ens34"
+sudo udevadm control --reload
+sudo udevadm trigger
+sudo reboot
+ip link show
