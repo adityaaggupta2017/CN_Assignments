@@ -1,0 +1,8 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens34:
+      addresses: [20.1.1.1/24]
+      dhcp4: no
+      gateway4: 20.1.1.2
