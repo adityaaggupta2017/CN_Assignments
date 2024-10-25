@@ -1,2 +1,8 @@
 sudo iptables -t nat -A PREROUTING -s 20.1.1.0/24 -m statistic --mode random --probability 0.8 -j DNAT --to-destination 40.1.1.3
 sudo iptables -t nat -A PREROUTING -s 20.1.1.0/24 -m statistic --mode random --probability 0.2 -j DNAT --to-destination 40.1.1.1
+
+
+iptables -t nat -N RandomChain
+iptables -t nat -A RandomChain -m statistic --mode random --probability 0.8 -j DNAT --to-destination 40.1.1.3
+iptables -t nat -A RandomChain -m statistic --mode random --probability 0.2 -j DNAT --to-destination 40.1.1.1
+sudo iptables -t nat -A PREROUTING -s 20.1.1.0/24 -j RandomChain
